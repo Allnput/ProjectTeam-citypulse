@@ -1,9 +1,13 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.Citypulse" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+<resources>
+    <style name="Theme.Citypulse" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/base</item>
     </style>
 
-    <style name="Theme.Citypulse" parent="Base.Theme.Citypulse" />
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <item name="android:windowBackground">@android:color/white</item>
+
+        <item name="windowSplashScreenAnimatedIcon">@drawable/city_pulse_logo</item>
+
+        <item name="postSplashScreenTheme">@style/Theme.Citypulse</item>
+    </style>
 </resources>

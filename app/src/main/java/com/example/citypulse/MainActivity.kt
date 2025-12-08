@@ -1,12 +1,11 @@
 package com.example.citypulse
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.example.citypulse.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -15,56 +14,29 @@ class MainActivity : AppCompatActivity() {
     private val TAG = "MainActivity"
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
+
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        if (checkLoginStatus()) {
+            binding = ActivityMainBinding.inflate(layoutInflater)
+            setContentView(binding.root)
 
-        Log.d(TAG, "onCreate: MainActivity dibuat")
-
-        // Mengatur padding agar UI tidak tertutup status bar
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
-
-        // 🔹 Ketika tombol Sign Up ditekan, pindah ke halaman SettingActivity
-        binding.btnSignUp.setOnClickListener {
-            Log.d(TAG, "Tombol Sign Up ditekan → pindah ke SettingActivity")
-            val intent = Intent(this, SettingActivity::class.java)
-            startActivity(intent)
+        } else {
+            navigateToLogin()
         }
     }
+    private fun checkLoginStatus(): Boolean {
+        val sharedPrefs = getSharedPreferences("USER_PREFS", Context.MODE_PRIVATE)
 
-    override fun onStart() {
-        super.onStart()
-        Log.d(TAG, "onStart: MainActivity mulai terlihat di layar")
+        return sharedPrefs.getBoolean("IS_LOGGED_IN", false)
     }
 
-    override fun onResume() {
-        super.onResume()
-        Log.d(TAG, "onResume: MainActivity aktif dan siap digunakan")
+    private fun navigateToLogin() {
+        val intent = Intent(this, LoginActivity::class.java)
+        startActivity(intent)
+        finish()
     }
 
-    override fun onPause() {
-        super.onPause()
-        Log.d(TAG, "onPause: MainActivity dijeda (akan membuka activity lain)")
-    }
-
-    override fun onStop() {
-        super.onStop()
-        Log.d(TAG, "onStop: MainActivity sudah tidak tampil di layar")
-    }
-
-    override fun onRestart() {
-        super.onRestart()
-        Log.d(TAG, "onRestart: MainActivity muncul kembali setelah berhenti")
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        Log.d(TAG, "onDestroy: MainActivity dihapus dari memori")
-    }
 }

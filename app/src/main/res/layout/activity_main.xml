@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
@@ -7,132 +8,45 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <ScrollView
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:padding="24dp"
-        android:background="@android:color/white">
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+    <FrameLayout
+        android:id="@+id/main_content_container"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/appBarLayout"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:gravity="center_horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_gravity="center"
+            android:gravity="center">
+
+            <ImageView
+                android:id="@+id/iv_splash_logo"
+                android:layout_width="150dp"
+                android:layout_height="150dp"
+                android:src="@drawable/city_pulse_logo"
+                android:layout_marginBottom="16dp"
+                android:contentDescription="City Pulse Logo"/>
 
             <TextView
-                android:id="@+id/tvTitle"
-                android:text="Create Account"
-                android:textSize="24sp"
-                android:textStyle="bold"
-                android:textColor="@android:color/black"
-                android:layout_marginTop="32dp"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-
-            <TextView
-                android:id="@+id/tvSubtitle"
-                android:text="Fill your information below or register with your social account."
-                android:textSize="13sp"
-                android:textColor="#808080"
-                android:gravity="center"
-                android:layout_marginTop="8dp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
-
-            <EditText
-                android:id="@+id/etName"
-                android:hint="Name"
-                android:layout_marginTop="24dp"
-                android:padding="12dp"
-                android:background="@drawable/edittext_background"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
-
-            <EditText
-                android:id="@+id/etEmail"
-                android:hint="Email"
-                android:inputType="textEmailAddress"
-                android:layout_marginTop="12dp"
-                android:padding="12dp"
-                android:background="@drawable/edittext_background"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
-
-            <EditText
-                android:id="@+id/etPassword"
-                android:hint="Password"
-                android:inputType="textPassword"
-                android:layout_marginTop="12dp"
-                android:padding="12dp"
-                android:background="@drawable/edittext_background"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
-
-            <LinearLayout
-                android:layout_marginTop="16dp"
-                android:orientation="horizontal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <CheckBox
-                    android:id="@+id/cbAgree"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
-
-                <TextView
-                    android:text="Agree with "
-                    android:textColor="@android:color/black"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
-
-                <TextView
-                    android:text="Terms &amp; Condition"
-                    android:textColor="#6C63FF"
-                    android:textStyle="bold"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
-            </LinearLayout>
-
-            <Button
-                android:id="@+id/btnSignUp"
-                android:text="Sign Up"
-                android:textColor="@android:color/white"
-                android:backgroundTint="#6C63FF"
-                android:layout_marginTop="16dp"
-                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="12dp"/>
+                android:text="Selamat Datang di City Pulse!"
+                android:textSize="18sp"
+                android:textStyle="bold" />
 
-            <TextView
-                android:text="Or sign up with"
-                android:textSize="13sp"
-                android:textColor="#808080"
-                android:layout_marginTop="24dp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-
-            <LinearLayout
-                android:orientation="horizontal"
-                android:gravity="center"
-                android:layout_marginTop="24dp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <TextView
-                    android:text="Already have an account? "
-                    android:textColor="#808080"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
-
-                <TextView
-                    android:text="Sign in"
-                    android:textColor="#6C63FF"
-                    android:textStyle="bold"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
-            </LinearLayout>
         </LinearLayout>
-    </ScrollView>
 
+    </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
