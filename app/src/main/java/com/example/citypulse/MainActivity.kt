@@ -10,32 +10,26 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // 1. Inisialisasi Splash Screen (Wajib sebelum super.onCreate)
         installSplashScreen()
 
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // 2. Jalankan logika pengecekan
-        if (checkLoginStatus()) {
-            // Jika sudah login -> Ke Dashboard Maps
+        if (isUserRegistered()) {
             navigateToMaps()
         } else {
-            // Jika belum login -> Ke Login
-            navigateToLogin()
+            navigateToRegister()
         }
-
-        // 3. PENTING: Matikan MainActivity agar Splash tidak tertahan di layar
         finish()
     }
 
-    private fun checkLoginStatus(): Boolean {
+    private fun isUserRegistered(): Boolean {
         val sharedPrefs = getSharedPreferences("USER_PREFS", Context.MODE_PRIVATE)
-        return sharedPrefs.getBoolean("IS_LOGGED_IN", false)
+        return sharedPrefs.getBoolean("IS_REGISTERED", false)
     }
 
-    private fun navigateToLogin() {
-        val intent = Intent(this, LoginActivity::class.java)
+    private fun navigateToRegister() {
+        val intent = Intent(this, RegisterActivity::class.java)
         startActivity(intent)
     }
 

@@ -5,7 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".LoginActivity">
+    tools:context=".MainActivity">
 
     <ScrollView
         android:layout_width="match_parent"
@@ -31,7 +31,7 @@
 
             <TextView
                 android:id="@+id/tvSubtitle"
-                android:text="Masukan Informasi Login Anda"
+                android:text="Masukan Informasi "
                 android:textSize="13sp"
                 android:textColor="#808080"
                 android:gravity="center"
@@ -49,6 +49,16 @@
                 android:layout_height="wrap_content"/>
 
             <EditText
+                android:id="@+id/etEmail"
+                android:hint="Email"
+                android:inputType="textEmailAddress"
+                android:layout_marginTop="12dp"
+                android:padding="12dp"
+                android:background="@drawable/edittext_background"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+            <EditText
                 android:id="@+id/etPassword"
                 android:hint="Kata Sandi"
                 android:inputType="textPassword"
@@ -58,18 +68,43 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
 
+            <LinearLayout
+                android:layout_marginTop="16dp"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <CheckBox
+                    android:id="@+id/cbAgree"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <TextView
+                    android:text="Agree with "
+                    android:textColor="@android:color/black"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <TextView
+                    android:text="Terms &amp; Condition"
+                    android:textColor="#5586E2"
+                    android:textStyle="bold"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+            </LinearLayout>
+
             <Button
                 android:id="@+id/btnLogin"
-                android:text="Masuk"
+                android:text="Sign Up"
                 android:textColor="@android:color/white"
                 android:backgroundTint="#5586E2"
-                android:layout_marginTop="32dp"
+                android:layout_marginTop="16dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:padding="12dp"/>
 
             <TextView
-                android:text="Atau masuk dengan"
+                android:text="Or sign up with"
                 android:textSize="13sp"
                 android:textColor="#808080"
                 android:layout_marginTop="24dp"
@@ -84,21 +119,21 @@
                 android:layout_height="wrap_content">
 
                 <TextView
-                    android:text="Belum punya akun? "
+                    android:text="Already have an account? "
                     android:textColor="#808080"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"/>
 
                 <TextView
-                    android:id="@+id/tvToRegister"
-                    android:text="Daftar"
+                    android:id="@+id/tvToLogin"
+                    android:text="Masuk"
                     android:textColor="#5586E2"
                     android:textStyle="bold"
-                    android:padding="8dp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"/>
             </LinearLayout>
         </LinearLayout>
     </ScrollView>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

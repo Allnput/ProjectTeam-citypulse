@@ -29,7 +29,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
         setupMap()
         setupBottomNavigation()
-        setupNotification()
+//        setupNotification()
     }
 
     private fun setupMap() {
@@ -77,10 +77,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             startActivity(Intent(this, SettingActivity::class.java))
         }
     }
-
-    private fun setupNotification() {
-        binding.btnNotification.setOnClickListener {
-            startActivity(Intent(this, NotifActivity::class.java))
-        }
+//
+//    private fun setupNotification() {
+//        binding.btnNotification.setOnClickListener {
+//            startActivity(Intent(this, NotifActivity::class.java))
+//        }
     }
-}
+//}
