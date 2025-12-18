@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "95983820498",
+    "firebase_url": "https://citypulse-aa789-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "citypulse-aa789",
+    "storage_bucket": "citypulse-aa789.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:95983820498:android:dd9c5a63ebf13ea3a9d70b",
+        "android_client_info": {
+          "package_name": "com.example.citypulse"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA3eAve5igqi7Hj4XDcruSyzHAiRGMAzQs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
