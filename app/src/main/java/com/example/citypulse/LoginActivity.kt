@@ -6,33 +6,26 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.citypulse.databinding.ActivityLoginBinding
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.database.FirebaseDatabase
 
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityLoginBinding
-    private lateinit var auth: FirebaseAuth
-    private lateinit var db: FirebaseFirestore
+    // Ganti Firestore ke Realtime Database
+    private val database = FirebaseDatabase.getInstance().getReference("users")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // 1. Inisialisasi Firebase & View Binding
-        auth = FirebaseAuth.getInstance()
-        db = FirebaseFirestore.getInstance()
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // 2. HAPUS checkExistingSession() dari sini.
-        // Kita ingin user selalu melihat layar login.
-
-        // 3. Logika Tombol Login (Sign In)
+        // Logika Tombol Login (Sign In)
         binding.btnLogin.setOnClickListener {
             performLogin()
         }
 
-        // 4. Navigasi ke RegisterActivity (Jika belum punya akun)
+        // Navigasi ke RegisterActivity
         binding.tvToRegister.setOnClickListener {
             val intent = Intent(this, RegisterActivity::class.java)
             startActivity(intent)
@@ -48,32 +41,35 @@ class LoginActivity : AppCompatActivity() {
             return
         }
 
-        // 5. Cari Email di Firestore berdasarkan Nama
-        db.collection("users")
-            .whereEqualTo("nama", name)
-            .get()
-            .addOnSuccessListener { documents ->
-                if (documents.isEmpty) {
-                    Toast.makeText(this, "User dengan nama '$name' tidak ditemukan.", Toast.LENGTH_SHORT).show()
-                } else {
-                    val email = documents.documents[0].getString("email")
+        database.orderByChild("nama").equalTo(name).get()
+            .addOnSuccessListener { snapshot ->
+                if (snapshot.exists()) {
+                    var userFound = false
 
-                    if (email != null) {
-                        // 6. Login menggunakan Email + Password
-                        auth.signInWithEmailAndPassword(email, password)
-                            .addOnCompleteListener(this) { task ->
-                                if (task.isSuccessful) {
-                                    // Mengubah dokumen Firestore langsung kembali menjadi objek UserModel
-                                    val userProfile = documents.documents[0].toObject(UserModel::class.java)
-                                    Toast.makeText(this, "Selamat datang, ${userProfile?.nama}", Toast.LENGTH_SHORT).show()
+                    for (userSnapshot in snapshot.children) {
+                        val userProfile = userSnapshot.getValue(UserModel::class.java)
 
-                                    saveLoginStatus(true)
-                                    navigateToMain()
-                                } else {
-                                    Toast.makeText(this, "Password salah atau terjadi gangguan.", Toast.LENGTH_SHORT).show()
-                                }
-                            }
+                        if (userProfile != null && userProfile.password == password) {
+                            // --- PERUBAHAN DI SINI ---
+                            // Ambil KEY/ID dari database (misal: user_gmail_com)
+                            val userIdFromDb = userSnapshot.key ?: ""
+
+                            Toast.makeText(this, "Selamat datang, ${userProfile.nama}", Toast.LENGTH_SHORT).show()
+
+                            // Kirim userId ke fungsi saveLoginStatus
+                            saveLoginStatus(true, userIdFromDb)
+
+                            navigateToMain()
+                            userFound = true
+                            break
+                        }
                     }
+
+                    if (!userFound) {
+                        Toast.makeText(this, "Password salah!", Toast.LENGTH_SHORT).show()
+                    }
+                } else {
+                    Toast.makeText(this, "User dengan nama '$name' tidak ditemukan.", Toast.LENGTH_SHORT).show()
                 }
             }
             .addOnFailureListener { exception ->
@@ -81,9 +77,18 @@ class LoginActivity : AppCompatActivity() {
             }
     }
 
-    private fun saveLoginStatus(isLoggedIn: Boolean) {
+    // Tambahkan parameter userId
+    private fun saveLoginStatus(isLoggedIn: Boolean, userId: String) {
         val sharedPrefs = getSharedPreferences("USER_PREFS", Context.MODE_PRIVATE)
-        sharedPrefs.edit().putBoolean("IS_LOGGED_IN", isLoggedIn).apply()
+        sharedPrefs.edit().apply {
+            putBoolean("IS_LOGGED_IN", isLoggedIn)
+            putBoolean("IS_REGISTERED", true)
+
+            // --- PENTING: Simpan ID agar bisa dihapus di SettingActivity ---
+            putString("CURRENT_USER_ID", userId)
+
+            apply()
+        }
     }
 
     private fun navigateToMain() {

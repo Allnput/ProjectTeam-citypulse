@@ -44,36 +44,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
-
-                    <LinearLayout
-                        android:id="@+id/itemPassword"
-                        android:layout_width="match_parent"
-                        android:layout_height="60dp"
-                        android:gravity="center_vertical"
-                        android:paddingHorizontal="16dp"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:background="?attr/selectableItemBackground">
-                        <ImageView
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:src="@drawable/ic_lock"
-                            app:tint="#333333" />
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginStart="16dp"
-                            android:text="Password"
-                            android:textColor="#333333"
-                            android:textSize="16sp" />
-                        <ImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:src="@drawable/ic_chevron_right"
-                            app:tint="#CCCCCC" />
-                    </LinearLayout>
-
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#F0F0F0" />
 
                     <LinearLayout
@@ -99,8 +69,8 @@
                             android:id="@+id/switchNotifications"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            app:thumbTint="@color/white"
-                            app:trackTint="@android:color/darker_gray"/>
+                            app:thumbTint="@android:color/white"
+                            app:trackTint="@drawable/switch_color_selector" />
                     </LinearLayout>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>

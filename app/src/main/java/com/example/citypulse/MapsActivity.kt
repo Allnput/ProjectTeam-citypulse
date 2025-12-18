@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -14,7 +13,6 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
@@ -29,7 +27,29 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
         setupMap()
         setupBottomNavigation()
-//        setupNotification()
+
+        // --- TAMBAHAN UNTUK FITUR BARU ---
+
+        // 1. Klik pada Tombol Tambah (+)
+        binding.btnAddIncident.setOnClickListener {
+            // Membuka Activity PostData untuk input kejadian
+            val intent = Intent(this, PostData::class.java)
+            startActivity(intent)
+        }
+
+        // 2. Klik pada Search Bar (CardView)
+        binding.searchCard.setOnClickListener {
+            // Anda bisa mengarahkan ke halaman pencarian atau
+            // memunculkan keyboard di sini
+        }
+
+        // Mengaktifkan kembali tombol notifikasi yang tadi di comment
+//        binding.btnNotification.setOnClickListener {
+//            val intent = Intent(this, NotifActivity::class.java)
+//            startActivity(intent)
+//        }
+
+//        setupNotification() // Tetap saya biarkan seperti permintaan anda
     }
 
     private fun setupMap() {
@@ -42,7 +62,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         mMap = googleMap
 
         val jogja = LatLng(-7.797068, 110.370529)
-        mMap.addMarker(MarkerOptions().position(jogja).title("Yogyakarta"))
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(jogja, 13f))
 
         enableMyLocation()
@@ -69,18 +88,20 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             // sudah di home
         }
 
-        binding.navProfile.setOnClickListener {
-            startActivity(Intent(this, MainActivity::class.java))
-        }
+//        binding.navProfile.setOnClickListener {
+//            // Biasanya profile diarahkan ke ProfileActivity,
+//            // pastikan ProfileActivity sudah dibuat
+//            startActivity(Intent(this, ProfileActivity::class.java))
+//        }
 
         binding.navSetting.setOnClickListener {
             startActivity(Intent(this, SettingActivity::class.java))
         }
     }
-//
+
 //    private fun setupNotification() {
 //        binding.btnNotification.setOnClickListener {
 //            startActivity(Intent(this, NotifActivity::class.java))
 //        }
-    }
-//}
+//    }
+}

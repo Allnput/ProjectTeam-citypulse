@@ -1,63 +1,53 @@
-package com.example.citypulse
-
-import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.FirebaseDatabase
-import com.example.citypulse.databinding.ActivityProfileBinding
-
-class ProfileActivity : AppCompatActivity() {
-
-    private lateinit var binding: ActivityProfileBinding
-    private lateinit var postsAdapter: PostAdapter
-    private lateinit var recyclerView: RecyclerView
-
-    private lateinit var auth: FirebaseAuth
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = ActivityProfileBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        auth = FirebaseAuth.getInstance()
-
-        // Inisialisasi RecyclerView dan Adapter
-        recyclerView = findViewById(R.id.recyclerViewPosts)
-        postsAdapter = PostAdapter()
-        recyclerView.layoutManager = LinearLayoutManager(this)
-        recyclerView.adapter = postsAdapter
-
-        // Mendapatkan data pengguna dari Firebase
-        val currentUser = auth.currentUser
-        if (currentUser != null) {
-            val userId = currentUser.uid
-            val database = FirebaseDatabase.getInstance().getReference("users").child(userId)
-
-            // Ambil data UserModel dari Firebase
-            database.get().addOnSuccessListener { dataSnapshot ->
-                val user = dataSnapshot.getValue(UserModel::class.java)
-                if (user != null) {
-                    // Menampilkan data user di Profile
-                    binding.txtName.text = user.nama
-                    binding.txtUsername.text = user.email
-                    binding.txtLocation.text = "Lokasi Pengguna" // Sesuaikan lokasi jika ada
-                }
-            }
-        }
-
-        // Ambil data postingan dari Firebase
-        val postDatabase = FirebaseDatabase.getInstance().getReference("posts")
-        postDatabase.get().addOnSuccessListener { dataSnapshot ->
-            val posts = mutableListOf<PostData>()
-            for (snapshot in dataSnapshot.children) {
-                val post = snapshot.getValue(PostData::class.java)
-                if (post != null) {
-                    posts.add(post)
-                }
-            }
-            postsAdapter.submitList(posts) // Tampilkan postingan di RecyclerView
-        }
-    }
-}
+//package com.example.citypulse
+//
+//import android.os.Bundle
+//import android.widget.Button
+//import android.widget.ImageView
+//import android.widget.TextView
+//import android.widget.Toast
+//import androidx.appcompat.app.AppCompatActivity
+//
+//class ProfileActivity : AppCompatActivity() {
+//
+//    override fun onCreate(savedInstanceState: Bundle?) {
+//        super.onCreate(savedInstanceState)
+//        setContentView(R.layout.activity_profile) // Set layout yang sesuai
+//
+//        // Inisialisasi UI components
+//        val btnBack: ImageView = findViewById(R.id.btnBack) // Pastikan ID sesuai
+//        val btnProfile: Button = findViewById(R.id.btnProfile)
+//        val txtName: TextView = findViewById(R.id.txtName)
+//        val txtUsername: TextView = findViewById(R.id.txtUsername)
+//        val txtLocation: TextView = findViewById(R.id.txtLoc4ation)
+//        val txtFollowing: TextView = findViewById(R.id.txtFollowing)
+//        val txtFollowers: TextView = findViewById(R.id.txtFollowers)
+//        val imgProfile: ImageView = findViewById(R.id.imgProfile)
+//
+//        // Data pengguna, bisa diganti dengan data dinamis
+//        val name = "John Doe"
+//        val username = "@john_doe"
+//        val location = "New York"
+//        val following = 289
+//        val followers = 45
+//
+//        // Set data pada TextView
+//        txtName.text = name
+//        txtUsername.text = username
+//        txtLocation.text = location
+//        txtFollowing.text = "$following Following"
+//        txtFollowers.text = "$followers Followers"
+//
+//        // Logika untuk tombol profile
+//        btnProfile.setOnClickListener {
+//            // Misalnya, mengarahkan ke halaman Profile detail
+//            Toast.makeText(this, "Profile Button Clicked", Toast.LENGTH_SHORT).show()
+//        }
+//
+//        // Aksi tombol back
+//        btnBack.setOnClickListener {
+//            onBackPressed() // Menutup activity atau kembali ke aktivitas sebelumnya
+//        }
+//
+//        // Anda bisa menambahkan fungsionalitas lain seperti mengubah foto profil atau lainnya
+//    }
+//}

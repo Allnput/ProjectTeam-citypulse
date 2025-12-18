@@ -1,7 +1,8 @@
 package com.example.citypulse
 
 data class UserModel(
-    val uid: String = "", //ID UNIK DARI FIREBASE AUTH
-    val nama: String = "", // NAMA USER
+    val username: String = "",
+    val nama: String = "",
     val email: String = "",
+    val password: String = "" // Simpan password di database untuk verifikasi manual
 )

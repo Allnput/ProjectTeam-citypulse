@@ -5,32 +5,26 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.example.citypulse.databinding.ActivityRegisterBinding // Pastikan nama binding sesuai XML Anda
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
+import com.example.citypulse.databinding.ActivityRegisterBinding
+import com.google.firebase.database.FirebaseDatabase
 
 class RegisterActivity : AppCompatActivity() {
     private lateinit var binding: ActivityRegisterBinding
-    private lateinit var auth: FirebaseAuth
-    private lateinit var db: FirebaseFirestore
+
+    // Inisialisasi Database Reference ke node "users"
+    private val database = FirebaseDatabase.getInstance().getReference("users")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // PENTING: Panggil inflate sebelum setContentView
         binding = ActivityRegisterBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        auth = FirebaseAuth.getInstance()
-        db = FirebaseFirestore.getInstance()
-
-        // Sesuaikan dengan ID di XML Anda (tadi di gambar tulisannya SIGN UP)
+        // Tombol Sign Up (sesuaikan ID binding dengan XML Anda)
         binding.btnLogin.setOnClickListener {
             performRegister()
         }
 
         binding.tvToLogin.setOnClickListener {
-            // Jika Anda ingin ke LoginActivity:
             val intent = Intent(this, LoginActivity::class.java)
             startActivity(intent)
         }
@@ -42,9 +36,9 @@ class RegisterActivity : AppCompatActivity() {
         val password = binding.etPassword.text.toString().trim()
         val isChecked = binding.cbAgree.isChecked
 
-        // Validasi Dasar
+        // 1. Validasi Input
         if (nama.isEmpty() || email.isEmpty() || password.isEmpty()) {
-            binding.etName.error = "Nama wajib diisi" // Menggunakan .error lebih user-friendly
+            Toast.makeText(this, "Semua field harus diisi", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -53,43 +47,55 @@ class RegisterActivity : AppCompatActivity() {
             return
         }
 
-        // Tampilkan Loading (Opsional tapi disarankan agar user tidak tekan tombol berkali-kali)
+        // 2. Encode Email karena Firebase Key tidak boleh mengandung karakter "."
+        val userId = email.replace(".", "_")
 
-        auth.createUserWithEmailAndPassword(email, password)
-            .addOnCompleteListener(this) { task ->
-                if (task.isSuccessful) {
-                    val uid = auth.currentUser?.uid ?: ""
-                    val userProfile = UserModel(uid, nama, email)
+        // 3. Cek apakah user sudah ada
+        database.child(userId).get().addOnSuccessListener { snapshot ->
+            if (snapshot.exists()) {
+                Toast.makeText(this, "Email ini sudah terdaftar!", Toast.LENGTH_SHORT).show()
+            } else {
+                // 4. Buat objek user (Pastikan UserModel sudah memiliki field password)
+                // Kita simpan password di DB karena tidak menggunakan Firebase Auth
+                val userProfile = UserModel(userId, nama, email, password)
 
-                    // Simpan ke Firestore
-                    db.collection("users").document(uid)
-                        .set(userProfile)
-                        .addOnSuccessListener {
-                            saveLoginStatus(true)
-                            navigateToMaps() // Langsung ke Maps
-                        }
-                        .addOnFailureListener { e ->
-                            Toast.makeText(this, "Database Error: ${e.message}", Toast.LENGTH_SHORT).show()
-                        }
-                } else {
-                    // Cek jika error karena email sudah ada atau format salah
-                    Toast.makeText(this, "Auth Gagal: ${task.exception?.message}", Toast.LENGTH_LONG).show()
-                }
+                database.child(userId).setValue(userProfile)
+                    .addOnSuccessListener {
+                        Toast.makeText(this, "Registrasi Berhasil!", Toast.LENGTH_SHORT).show()
+
+                        // Masukkan variabel userId (yang sudah di-replace "." nya) ke fungsi
+                        saveUserSession(userId)
+
+                        navigateToMaps()
+                    }
+                    .addOnFailureListener { e ->
+                        Toast.makeText(this, "Gagal simpan data: ${e.message}", Toast.LENGTH_SHORT).show()
+                    }
             }
+        }.addOnFailureListener {
+            Toast.makeText(this, "Terjadi kesalahan koneksi", Toast.LENGTH_SHORT).show()
+        }
     }
 
-    private fun saveLoginStatus(isLoggedIn: Boolean) {
+// Di dalam RegisterActivity.kt
+
+    private fun saveUserSession(userId: String) { // Tambahkan parameter userId di sini
         val sharedPrefs = getSharedPreferences("USER_PREFS", Context.MODE_PRIVATE)
-        sharedPrefs.edit().apply {
-            // Gunakan key yang konsisten dengan MainActivity (IS_LOGGED_IN)
-            putBoolean("IS_LOGGED_IN", isLoggedIn)
+        with(sharedPrefs.edit()) {
+            putBoolean("IS_REGISTERED", true)
+            putBoolean("IS_LOGGED_IN", true)
+
+            // --- TAMBAHKAN BARIS INI ---
+            // Simpan userId agar SettingActivity tahu node mana yang harus dihapus
+            putString("CURRENT_USER_ID", userId)
+
             apply()
         }
     }
 
     private fun navigateToMaps() {
         val intent = Intent(this, MapsActivity::class.java)
-        // Clear task agar user tidak bisa balik ke halaman Register setelah sukses
+        // Menghapus stack activity sebelumnya agar user tidak bisa 'back' ke Register
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
         finish()

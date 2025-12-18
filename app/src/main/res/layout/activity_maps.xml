@@ -1,18 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- TOP BAR -->
+    <fragment
+        android:id="@+id/map_fragment"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
     <LinearLayout
         android:id="@+id/topBar"
         android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:background="@color/blue"
+        android:layout_height="75dp"
+        android:background="#0288D1"
         android:gravity="center_vertical"
+        android:orientation="horizontal"
         android:paddingHorizontal="16dp"
-        android:orientation="horizontal">
+        android:elevation="4dp">
 
         <TextView
             android:layout_width="0dp"
@@ -21,28 +27,64 @@
             android:text="CityPulse"
             android:textColor="@android:color/white"
             android:textSize="18sp"
-            android:textStyle="bold"/>
+            android:textStyle="bold" />
 
         <ImageView
             android:id="@+id/btnNotification"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:src="@drawable/ic_notification"
-            android:contentDescription="Notifikasi"
-            app:tint="@android:color/white"
-            xmlns:app="http://schemas.android.com/apk/res-auto"/>
+            app:tint="@android:color/white" />
     </LinearLayout>
 
-    <!-- MAP -->
-    <fragment
-        android:id="@+id/map_fragment"
-        android:name="com.google.android.gms.maps.SupportMapFragment"
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="56dp"
-        android:layout_marginBottom="64dp"/>
+        android:layout_height="match_parent">
 
-    <!-- BOTTOM NAVIGATION -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/searchCard"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="12dp"
+            android:layout_marginBottom="85dp"
+            app:cardCornerRadius="30dp"
+            app:cardElevation="6dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/btnAddIncident"
+            app:layout_constraintStart_toStartOf="parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="25dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Apa yang terjadi disekitar anda?"
+                    android:textColor="@android:color/darker_gray"
+                    android:textSize="14sp" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/btnAddIncident"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="85dp"
+            android:src="@drawable/ic_add"
+            app:backgroundTint="@android:color/white"
+            app:fabCustomSize="60dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:maxImageSize="30dp"
+            app:tint="@android:color/black" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
     <LinearLayout
         android:id="@+id/bottomNav"
         android:layout_width="match_parent"
@@ -51,9 +93,8 @@
         android:background="@android:color/white"
         android:orientation="horizontal"
         android:weightSum="3"
-        android:elevation="8dp">
+        android:elevation="12dp">
 
-        <!-- HOME -->
         <LinearLayout
             android:id="@+id/navHome"
             android:layout_width="0dp"
@@ -61,20 +102,10 @@
             android:layout_weight="1"
             android:gravity="center"
             android:orientation="vertical">
-
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@drawable/ic_home"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Home"
-                android:textSize="12sp"/>
+            <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_home" app:tint="#0288D1"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Home" android:textColor="#0288D1" android:textSize="10sp" />
         </LinearLayout>
 
-        <!-- PROFILE -->
         <LinearLayout
             android:id="@+id/navProfile"
             android:layout_width="0dp"
@@ -82,20 +113,10 @@
             android:layout_weight="1"
             android:gravity="center"
             android:orientation="vertical">
-
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@drawable/ic_profile"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Profile"
-                android:textSize="12sp"/>
+            <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_profile" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Profile" android:textSize="10sp" />
         </LinearLayout>
 
-        <!-- SETTING -->
         <LinearLayout
             android:id="@+id/navSetting"
             android:layout_width="0dp"
@@ -103,19 +124,9 @@
             android:layout_weight="1"
             android:gravity="center"
             android:orientation="vertical">
-
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@drawable/ic_setting"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Setting"
-                android:textSize="12sp"/>
+            <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_setting" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Setting" android:textSize="10sp" />
         </LinearLayout>
-
     </LinearLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
