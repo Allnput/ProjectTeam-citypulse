@@ -8,5 +8,3 @@ data class PostData(
     val imageUrl: String? = null,  // URL gambar opsional
     val userId: String = ""  // ID pengguna yang membuat postingan
 )
-
-

@@ -1,6 +1,6 @@
 package com.example.citypulse
 
-data class NotifikasiItem(
+data class NotificationItem(
     val title: String,
     val message: String,
     val time: String,

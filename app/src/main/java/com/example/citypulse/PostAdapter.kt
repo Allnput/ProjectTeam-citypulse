@@ -10,10 +10,11 @@ import com.bumptech.glide.Glide
 
 class PostsAdapter : RecyclerView.Adapter<PostsAdapter.PostViewHolder>() {
 
-    private var postsList: List<PostData> = listOf()
+    private var postsList: MutableList<PostData> = mutableListOf()
 
     fun submitList(posts: List<PostData>) {
-        postsList = posts
+        postsList.clear()
+        postsList.addAll(posts)
         notifyDataSetChanged()
     }
 
@@ -27,20 +28,29 @@ class PostsAdapter : RecyclerView.Adapter<PostsAdapter.PostViewHolder>() {
         holder.bind(post)
     }
 
-    override fun getItemCount(): Int {
-        return postsList.size
-    }
+    override fun getItemCount(): Int = postsList.size
 
     class PostViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        // Pastikan ID ini sesuai dengan item_post.xml Anda
         private val txtPostStatus: TextView = itemView.findViewById(R.id.txtPostStatus)
         private val imgPost: ImageView = itemView.findViewById(R.id.imgPost)
 
         fun bind(post: PostData) {
+            // Menggunakan properti 'status' sesuai PostData terbaru Anda
             txtPostStatus.text = post.status
-            Glide.with(itemView.context)
-                .load(post.imageUrl)
-                .into(imgPost)
+
+            // Menampilkan gambar jika ada URL-nya
+            if (!post.imageUrl.isNullOrEmpty()) {
+                imgPost.visibility = View.VISIBLE
+                Glide.with(itemView.context)
+                    .load(post.imageUrl)
+                    .placeholder(android.R.drawable.ic_menu_gallery)
+                    .error(android.R.drawable.stat_notify_error)
+                    .into(imgPost)
+            } else {
+                // Sembunyikan ImageView jika tidak ada gambar agar layout tetap rapi
+                imgPost.visibility = View.GONE
+            }
         }
     }
 }
-

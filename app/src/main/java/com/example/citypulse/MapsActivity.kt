@@ -25,31 +25,28 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         binding = ActivityMapsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Inisialisasi Peta
         setupMap()
+
+        // Inisialisasi Navigasi Bottom Bar
         setupBottomNavigation()
 
-        // --- TAMBAHAN UNTUK FITUR BARU ---
+        // Inisialisasi Tombol Notifikasi di Header
+        setupNotification()
 
-        // 1. Klik pada Tombol Tambah (+)
+        // --- LOGIKA FITUR FLOATING UI ---
+
+        // 1. Klik pada Tombol Tambah (+) untuk input kejadian baru
         binding.btnAddIncident.setOnClickListener {
-            // Membuka Activity PostData untuk input kejadian
-            val intent = Intent(this, PostData::class.java)
+            val intent = Intent(this, StatusActivity::class.java)
             startActivity(intent)
         }
 
-        // 2. Klik pada Search Bar (CardView)
+// 2. Klik pada Search Bar (CardView)
         binding.searchCard.setOnClickListener {
-            // Anda bisa mengarahkan ke halaman pencarian atau
-            // memunculkan keyboard di sini
+            val intent = Intent(this, StatusActivity::class.java)
+            startActivity(intent)
         }
-
-        // Mengaktifkan kembali tombol notifikasi yang tadi di comment
-//        binding.btnNotification.setOnClickListener {
-//            val intent = Intent(this, NotifActivity::class.java)
-//            startActivity(intent)
-//        }
-
-//        setupNotification() // Tetap saya biarkan seperti permintaan anda
     }
 
     private fun setupMap() {
@@ -61,9 +58,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
+        // Set lokasi default ke Yogyakarta
         val jogja = LatLng(-7.797068, 110.370529)
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(jogja, 13f))
 
+        // Cek dan aktifkan izin lokasi
         enableMyLocation()
     }
 
@@ -85,23 +84,27 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private fun setupBottomNavigation() {
         binding.navHome.setOnClickListener {
-            // sudah di home
+            // Tetap di halaman ini (Home)
         }
 
-//        binding.navProfile.setOnClickListener {
-//            // Biasanya profile diarahkan ke ProfileActivity,
-//            // pastikan ProfileActivity sudah dibuat
-//            startActivity(Intent(this, ProfileActivity::class.java))
-//        }
+        binding.navProfile.setOnClickListener {
+            // Berpindah ke Halaman Profile
+            val intent = Intent(this, ProfileActivity::class.java)
+            startActivity(intent)
+        }
 
         binding.navSetting.setOnClickListener {
-            startActivity(Intent(this, SettingActivity::class.java))
+            // Berpindah ke Halaman Setting
+            val intent = Intent(this, SettingActivity::class.java)
+            startActivity(intent)
         }
     }
 
-//    private fun setupNotification() {
-//        binding.btnNotification.setOnClickListener {
-//            startActivity(Intent(this, NotifActivity::class.java))
-//        }
-//    }
+    private fun setupNotification() {
+        // Mengaktifkan klik pada ikon lonceng di header biru
+        binding.btnNotification.setOnClickListener {
+            val intent = Intent(this, NotifActivity::class.java)
+            startActivity(intent)
+        }
+    }
 }

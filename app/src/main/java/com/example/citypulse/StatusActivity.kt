@@ -1,23 +1,16 @@
 package com.example.citypulse
 
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
-import android.view.View
-import android.widget.ArrayAdapter
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ImageView
-import android.widget.Spinner
-import android.widget.TextView
-import android.widget.Toast
+import android.provider.MediaStore
+import android.widget.*
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.storage.FirebaseStorage
-import android.content.Intent
-import android.net.Uri
-import android.provider.MediaStore
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.ActivityResultCallback
 
 class StatusActivity : AppCompatActivity() {
 
@@ -26,84 +19,106 @@ class StatusActivity : AppCompatActivity() {
     private lateinit var selectedImage: ImageView
     private lateinit var btnChooseImage: Button
     private lateinit var btnPost: Button
+    private lateinit var btnBack: ImageView
 
-    private var imageUri: Uri? = null // Uri untuk gambar yang dipilih
+    private var imageUri: Uri? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_status)
 
-        // Inisialisasi UI components
+        // 1. Inisialisasi UI
         edtStatus = findViewById(R.id.edtStatus)
         spinnerCategory = findViewById(R.id.spinnerCategory)
         selectedImage = findViewById(R.id.selectedImage)
         btnChooseImage = findViewById(R.id.btnChooseImage)
         btnPost = findViewById(R.id.btnPost)
+        // btnBack = findViewById(R.id.btnBack) // Opsional jika ada tombol kembali di header
 
-        // Menambahkan tingkat bahaya ke spinner
+        // 2. Setup Spinner
         val dangerLevels = arrayOf("Rendah", "Sedang", "Tinggi")
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, dangerLevels)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinnerCategory.adapter = adapter
 
-        // Pilih gambar
+        // 3. Pilih Gambar
         btnChooseImage.setOnClickListener {
             val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
             resultLauncher.launch(intent)
         }
 
-        // Posting status
+        // 4. Posting Status
         btnPost.setOnClickListener {
-            val statusText = edtStatus.text.toString()
+            val statusText = edtStatus.text.toString().trim()
             val selectedCategory = spinnerCategory.selectedItem.toString()
 
             if (statusText.isNotEmpty() && imageUri != null) {
-                savePostToDatabase(statusText, selectedCategory)
+                uploadImageAndSavePost(statusText, selectedCategory)
             } else {
-                Toast.makeText(this, "Tolong lengkapi semua informasi", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Tolong isi deskripsi dan pilih gambar", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    // Fungsi untuk menyimpan status dan gambar ke Firebase
-    private fun savePostToDatabase(status: String, category: String) {
+    private fun uploadImageAndSavePost(status: String, category: String) {
+        // Tampilkan loading sederhana
+        btnPost.isEnabled = false
+        btnPost.text = "Mengirim..."
+
+        val storageRef = FirebaseStorage.getInstance().getReference("post_images/${System.currentTimeMillis()}.jpg")
+
+        imageUri?.let { uri ->
+            storageRef.putFile(uri).addOnSuccessListener {
+                storageRef.downloadUrl.addOnSuccessListener { downloadUrl ->
+                    saveToRealtimeDatabase(status, category, downloadUrl.toString())
+                }
+            }.addOnFailureListener {
+                btnPost.isEnabled = true
+                btnPost.text = "POST"
+                Toast.makeText(this, "Gagal upload gambar: ${it.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun saveToRealtimeDatabase(status: String, category: String, imageUrl: String) {
         val database = FirebaseDatabase.getInstance().getReference("posts")
 
-        // Menyimpan gambar ke Firebase Storage
-        val storageRef = FirebaseStorage.getInstance().getReference("images/${System.currentTimeMillis()}.jpg")
-        storageRef.putFile(imageUri!!).addOnSuccessListener {
-            storageRef.downloadUrl.addOnSuccessListener { uri ->
-                // Menyimpan URL gambar ke database bersama data lainnya
-                val postId = database.push().key
-                val postData = PostData(
-                    status = status,
-                    category = category,
-                    imageUrl = uri.toString() // Menyimpan URL gambar
-                )
+        // AMBIL USER ID dari SharedPreferences (Sangat Penting untuk Profile)
+        val sharedPrefs = getSharedPreferences("USER_PREFS", Context.MODE_PRIVATE)
+        val currentUserId = sharedPrefs.getString("CURRENT_USER_ID", "") ?: "anonymous"
 
-                // Menyimpan data ke Firebase
-                if (postId != null) {
-                    database.child(postId).setValue(postData).addOnCompleteListener { task ->
-                        if (task.isSuccessful) {
-                            Toast.makeText(this, "Posting berhasil", Toast.LENGTH_LONG).show()
-                        } else {
-                            Toast.makeText(this, "Gagal menyimpan postingan", Toast.LENGTH_LONG).show()
-                        }
-                    }
+        val postId = database.push().key
+
+        // Data Postingan Lengkap
+        val postData = PostData(
+            status = status,
+            category = category,
+            imageUrl = imageUrl,
+            userId = currentUserId, // Menghubungkan postingan dengan akun user
+            latitude = -7.797068,   // Koordinat contoh (Yogyakarta)
+            longitude = 110.370529  // Di masa depan bisa diambil dari GPS MapsActivity
+        )
+
+        if (postId != null) {
+            database.child(postId).setValue(postData).addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    Toast.makeText(this, "Berhasil diposting!", Toast.LENGTH_SHORT).show()
+                    // Kembali ke MapsActivity dan tutup halaman ini
+                    finish()
+                } else {
+                    btnPost.isEnabled = true
+                    btnPost.text = "POST"
+                    Toast.makeText(this, "Gagal simpan data", Toast.LENGTH_SHORT).show()
                 }
             }
         }
     }
 
-    // Menangani hasil pemilihan gambar dari galeri
-    private val resultLauncher: ActivityResultLauncher<Intent> =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == RESULT_OK) {
-                val data = result.data
-                if (data != null) {
-                    imageUri = data.data
-                    selectedImage.setImageURI(imageUri)  // Set gambar yang dipilih ke ImageView
-                }
-            }
+    private val resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == RESULT_OK) {
+            imageUri = result.data?.data
+            selectedImage.setImageURI(imageUri)
+            selectedImage.visibility = android.view.View.VISIBLE
         }
+    }
 }

@@ -54,7 +54,9 @@ class SettingActivity : AppCompatActivity() {
         }
 
         binding.navProfile.setOnClickListener {
-            Toast.makeText(this, "Ke Halaman Profil", Toast.LENGTH_SHORT).show()
+            // Berpindah ke Halaman Profile
+            val intent = Intent(this, ProfileActivity::class.java)
+            startActivity(intent)
         }
     }
 

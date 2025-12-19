@@ -56,9 +56,6 @@
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
             android:paddingBottom="8dp">
-
-            <!-- Placeholder for notifications -->
-            <!-- Notifications will be dynamically added here -->
         </LinearLayout>
     </ScrollView>
 
