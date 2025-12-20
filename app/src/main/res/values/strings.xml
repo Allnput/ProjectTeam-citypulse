@@ -1,4 +1,14 @@
 <resources>
     <string name="app_name">citypulse</string>
     <string name="title_activity_maps">MAPS</string>
+    <string-array name="danger_categories">
+        <item>Rendah</item>
+        <item>Sedang</item>
+        <item>Tinggi</item>
+    </string-array>
+
+    <!-- Warna untuk setiap tingkat bahaya -->
+    <color name="colorRendah">#4CAF50</color> <!-- Hijau untuk bahaya rendah -->
+    <color name="colorSedang">#FFEB3B</color> <!-- Kuning untuk bahaya sedang -->
+    <color name="colorTinggi">#F44336</color>
 </resources>

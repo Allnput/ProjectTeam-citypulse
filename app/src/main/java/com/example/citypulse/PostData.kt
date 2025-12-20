@@ -1,10 +1,17 @@
 package com.example.citypulse
 
+import android.net.Uri // Pastikan URI sudah diimpor
+
 data class PostData(
-    val status: String = "",
-    val category: String = "",
-    val latitude: Double? = null,
-    val longitude: Double? = null,
-    val imageUrl: String? = null,  // URL gambar opsional
-    val userId: String = ""  // ID pengguna yang membuat postingan
+    var title: String = "",
+    var message: String = "",
+    var status: String = "",
+    var category: String = "",
+    var latitude: Double = 0.0,
+    var longitude: Double = 0.0,
+    var imageUrl: String? = null,
+    var userId: String = "",
+    var timestamp: Long = 0L,
+    var categoryColor: Int = 0,
+    var postImageUri: Uri? = null // Tipe data Uri
 )

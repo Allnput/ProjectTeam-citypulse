@@ -1,82 +1,89 @@
 package com.example.citypulse
 
-import android.content.Intent
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.widget.Button
 import android.widget.LinearLayout
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.firebase.database.*
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
-class NotifActivity : AppCompatActivity(), OnMapReadyCallback {
+class NotifActivity : AppCompatActivity() {
 
     private var mMap: GoogleMap? = null
+    private lateinit var postRef: DatabaseReference
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_notif)
 
-        // 1. Inisialisasi Map menggunakan SupportMapFragment (sesuai XML)
-        val mapFragment = supportFragmentManager
-            .findFragmentById(R.id.mapFragment) as SupportMapFragment
-        mapFragment.getMapAsync(this)
-
-        // 2. Logika Tombol Kembali ke MapsActivity
-        val btnBack: Button = findViewById(R.id.btnBack)
-        btnBack.setOnClickListener {
-            val intent = Intent(this, MapsActivity::class.java)
-            // Menggunakan FLAG_ACTIVITY_CLEAR_TOP agar tidak menumpuk halaman
-            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
-            startActivity(intent)
-            finish() // Menutup NotifActivity
-        }
-
-        // 3. Inisialisasi daftar notifikasi
-        setupNotificationList()
-    }
-
-    override fun onMapReady(googleMap: GoogleMap) {
-        mMap = googleMap
-        // Set posisi awal (opsional)
-        val defaultLoc = LatLng(-6.200000, 106.820000)
-        mMap?.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLoc, 10f))
-    }
-
-    private fun setupNotificationList() {
         val notificationList: LinearLayout = findViewById(R.id.notificationList)
+        val btnBack: Button = findViewById(R.id.btnBack)
 
-        val notifications = listOf(
-            NotificationItem("Banjir", "Banjir di daerah X.", "2h", -6.175110, 106.865039),
-            NotificationItem("Macet", "Kemacetan di Jalan Y.", "1d", -6.200000, 106.820000),
-            NotificationItem("Jalan Rusak", "Jalan rusak di daerah Z.", "3d", -6.140000, 106.900000)
-        )
+        btnBack.setOnClickListener { finish() }
 
-        for (notification in notifications) {
-            val notificationView = LayoutInflater.from(this).inflate(R.layout.notification_item, null)
+        // Firebase node posts
+        postRef = FirebaseDatabase.getInstance().getReference("posts")
 
-            val tvTitle: TextView = notificationView.findViewById(R.id.tvTitle)
-            val tvMessage: TextView = notificationView.findViewById(R.id.tvMessage)
-            val tvTime: TextView = notificationView.findViewById(R.id.tvTime)
+        postRef.limitToLast(50).addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                notificationList.removeAllViews()
 
-            tvTitle.text = notification.title
-            tvMessage.text = notification.message
-            tvTime.text = notification.time
+                val items = mutableListOf<PostData>()
+                for (data in snapshot.children) {
+                    val post = data.getValue(PostData::class.java) ?: continue
+                    items.add(post)
+                }
 
-            notificationView.setOnClickListener {
-                mMap?.let { map ->
-                    val location = LatLng(notification.latitude, notification.longitude)
-                    map.clear() // Bersihkan marker lama
-                    map.addMarker(MarkerOptions().position(location).title(notification.title))
-                    map.animateCamera(CameraUpdateFactory.newLatLngZoom(location, 15f))
+                items.sortByDescending { it.timestamp }
+
+                for (post in items) {
+                    val itemView = NotificationItemView(this@NotifActivity)
+
+                    val timeText = if (post.timestamp > 0L) {
+                        SimpleDateFormat("dd MMM yyyy HH:mm", Locale.getDefault())
+                            .format(Date(post.timestamp))
+                    } else {
+                        "-"
+                    }
+
+                    itemView.bind(
+                        title = post.title,
+                        message = post.message,
+                        time = timeText
+                    )
+
+                    // Menambahkan setOnClickListener pada setiap notifikasi
+                    itemView.setOnClickListener {
+                        // Membuat Intent untuk menuju MapsActivity
+                        val intent = Intent(this@NotifActivity, MapsActivity::class.java)
+                        // Gunakan this, tanpa @NotifActivity
+
+
+                        // Menyertakan data lokasi (latitude dan longitude)
+                        intent.putExtra("LATITUDE", post.latitude ?: 0.0)
+                        intent.putExtra("LONGITUDE", post.longitude ?: 0.0)
+                        intent.putExtra("TITLE", post.title)
+
+                        // Menjalankan Intent untuk pindah ke MapsActivity
+                        startActivity(intent)
+                    }
+
+
+                    notificationList.addView(itemView)
                 }
             }
-            notificationList.addView(notificationView)
-        }
+
+            override fun onCancelled(error: DatabaseError) {
+                // Handle error if needed
+            }
+        })
     }
 }
+

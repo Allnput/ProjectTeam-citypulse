@@ -19,6 +19,7 @@
         android:background="#0288D1"
         app:layout_constraintTop_toTopOf="parent"/>
 
+    <!-- Profile Header Section -->
     <LinearLayout
         android:id="@+id/profileHeader"
         android:layout_width="match_parent"

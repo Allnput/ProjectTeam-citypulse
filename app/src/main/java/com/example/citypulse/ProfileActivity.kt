@@ -1,80 +1,78 @@
 package com.example.citypulse
 
-import android.content.Context
-import android.content.Intent
 import android.os.Bundle
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.citypulse.databinding.ActivityProfileBinding
-import com.google.firebase.database.FirebaseDatabase
+import com.bumptech.glide.Glide
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.*
 
 class ProfileActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityProfileBinding
-    private lateinit var postsAdapter: PostsAdapter
+    private lateinit var tvUserName: TextView
+    private lateinit var tvUserEmail: TextView
+    private lateinit var tvUserLocation: TextView
+    private lateinit var imgProfile: ImageView
+    private lateinit var btnBack: ImageView
+
+    private lateinit var database: DatabaseReference
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityProfileBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        setContentView(R.layout.activity_profile)
 
-        // 1. Inisialisasi UI & Adapter
-        setupRecyclerView()
-        setupBottomNavigation() // Fungsi navigasi footer
+        // Inisialisasi komponen UI
+        tvUserName = findViewById(R.id.txtName)
+        tvUserEmail = findViewById(R.id.txtUsername)
+        tvUserLocation = findViewById(R.id.txtLocation)
+        imgProfile = findViewById(R.id.imgProfile)
+        btnBack = findViewById(R.id.btnBack)
 
-        // 2. Load Data
-        loadUserDataAndPosts()
-    }
+        // Menyambung ke Firebase Realtime Database
+        database = FirebaseDatabase.getInstance().reference
 
-    private fun setupRecyclerView() {
-        postsAdapter = PostsAdapter()
-        binding.recyclerViewPosts.layoutManager = LinearLayoutManager(this)
-        binding.recyclerViewPosts.adapter = postsAdapter
-    }
+        // Ambil user ID dari Firebase Auth
+        val userId = FirebaseAuth.getInstance().currentUser?.uid
 
-    private fun loadUserDataAndPosts() {
-        val sharedPrefs = getSharedPreferences("USER_PREFS", Context.MODE_PRIVATE)
-        val userId = sharedPrefs.getString("CURRENT_USER_ID", "")
+        if (userId != null) {
+            // Ambil data pengguna dari Firebase Realtime Database
+            database.child("users").child(userId).addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    if (snapshot.exists()) {
+                        // Ambil data pengguna dari snapshot
+                        val user = snapshot.getValue(User::class.java)
 
-        if (!userId.isNullOrEmpty()) {
-            // Ambil Data Profil
-            FirebaseDatabase.getInstance().getReference("users").child(userId)
-                .get().addOnSuccessListener { snapshot ->
-                    val user = snapshot.getValue(UserModel::class.java)
-                    user?.let {
-                        binding.txtName.text = it.nama
-                        binding.txtUsername.text = it.email
-                        binding.txtLocation.text = "Yogyakarta, Indonesia"
+                        // Menampilkan data pengguna di UI
+                        tvUserName.text = user?.name ?: "Nama Pengguna"
+                        tvUserEmail.text = user?.email ?: "Email tidak tersedia"
+                        tvUserLocation.text = user?.location ?: "Lokasi tidak tersedia"
+
+                        // Menampilkan foto profil
+                        Glide.with(this@ProfileActivity)
+                            .load(user?.profilePictureUrl)
+                            .circleCrop()  // Membuat gambar berbentuk bulat
+                            .into(imgProfile)
                     }
                 }
 
-            // Ambil Data Postingan (Filtered by User ID)
-            FirebaseDatabase.getInstance().getReference("posts")
-                .get().addOnSuccessListener { snapshot ->
-                    val posts = snapshot.children.mapNotNull {
-                        it.getValue(PostData::class.java)
-                    }.filter { it.userId == userId }
-
-                    postsAdapter.submitList(posts)
+                override fun onCancelled(error: DatabaseError) {
+                    // Tangani error jika ada
                 }
+            })
+        }
+
+        // Tombol Kembali
+        btnBack.setOnClickListener {
+            finish() // Kembali ke halaman sebelumnya
         }
     }
 
-    private fun setupBottomNavigation() {
-        binding.navHome.setOnClickListener {
-            val intent = Intent(this, MapsActivity::class.java)
-            // Bersihkan tumpukan activity agar kembali ke home terasa bersih
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(intent)
-        }
-
-        binding.navSetting.setOnClickListener {
-            startActivity(Intent(this, SettingActivity::class.java))
-            // Kita tidak memanggil finish() agar user bisa 'back' ke profile jika mau
-        }
-
-        binding.navProfile.setOnClickListener {
-            // Sudah di halaman profile, tidak perlu aksi
-        }
-    }
+    // Data model untuk User
+    data class User(
+        var name: String = "",
+        var email: String = "",
+        var location: String = "",
+        var profilePictureUrl: String = ""
+    )
 }

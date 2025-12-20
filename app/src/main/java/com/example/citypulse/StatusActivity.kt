@@ -1,124 +1,122 @@
 package com.example.citypulse
 
-import android.content.Context
-import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.provider.MediaStore
-import android.widget.*
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContracts
+import android.view.View
+import android.widget.Button
+import android.widget.EditText
+import android.widget.Spinner
+import android.widget.TextView
+import android.widget.Toast
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.storage.FirebaseStorage
+import androidx.activity.result.contract.ActivityResultContracts
+import com.example.citypulse.databinding.ActivityStatusBinding
 
 class StatusActivity : AppCompatActivity() {
 
+    private lateinit var tvUserName: TextView
     private lateinit var edtStatus: EditText
-    private lateinit var spinnerCategory: Spinner
-    private lateinit var selectedImage: ImageView
-    private lateinit var btnChooseImage: Button
     private lateinit var btnPost: Button
-    private lateinit var btnBack: ImageView
+    private lateinit var statusSpinner: Spinner
+    private lateinit var btnSelectImage: Button
+    private lateinit var ivPreview: ImageView
 
-    private var imageUri: Uri? = null
+    private var selectedCategoryColor: Int = R.color.colorRendah  // Default color for "Rendah" (Low danger)
+    private var tempImageUri: Uri? = null  // Variable to store selected image URI
+
+    // Launcher to handle image selection
+    private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null) {
+            tempImageUri = uri
+            ivPreview.setImageURI(uri)  // Preview selected image in ImageView
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_status)
 
-        // 1. Inisialisasi UI
+        tvUserName = findViewById(R.id.tvUserName)
         edtStatus = findViewById(R.id.edtStatus)
-        spinnerCategory = findViewById(R.id.spinnerCategory)
-        selectedImage = findViewById(R.id.selectedImage)
-        btnChooseImage = findViewById(R.id.btnChooseImage)
         btnPost = findViewById(R.id.btnPost)
-        // btnBack = findViewById(R.id.btnBack) // Opsional jika ada tombol kembali di header
+        statusSpinner = findViewById(R.id.statusSpinner)
+        btnSelectImage = findViewById(R.id.btnSelectImage)
+        ivPreview = findViewById(R.id.ivPreview)
 
-        // 2. Setup Spinner
-        val dangerLevels = arrayOf("Rendah", "Sedang", "Tinggi")
-        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, dangerLevels)
+        // Get current user name from Firebase Authentication
+        val user = FirebaseAuth.getInstance().currentUser
+        tvUserName.text = user?.displayName ?: "Nama Akun"
+
+        // Set up Spinner for danger categories
+        val adapter = ArrayAdapter.createFromResource(
+            this,
+            R.array.danger_categories,  // Array resource from strings.xml
+            android.R.layout.simple_spinner_item
+        )
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        spinnerCategory.adapter = adapter
+        statusSpinner.adapter = adapter
 
-        // 3. Pilih Gambar
-        btnChooseImage.setOnClickListener {
-            val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-            resultLauncher.launch(intent)
-        }
-
-        // 4. Posting Status
-        btnPost.setOnClickListener {
-            val statusText = edtStatus.text.toString().trim()
-            val selectedCategory = spinnerCategory.selectedItem.toString()
-
-            if (statusText.isNotEmpty() && imageUri != null) {
-                uploadImageAndSavePost(statusText, selectedCategory)
-            } else {
-                Toast.makeText(this, "Tolong isi deskripsi dan pilih gambar", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-    private fun uploadImageAndSavePost(status: String, category: String) {
-        // Tampilkan loading sederhana
-        btnPost.isEnabled = false
-        btnPost.text = "Mengirim..."
-
-        val storageRef = FirebaseStorage.getInstance().getReference("post_images/${System.currentTimeMillis()}.jpg")
-
-        imageUri?.let { uri ->
-            storageRef.putFile(uri).addOnSuccessListener {
-                storageRef.downloadUrl.addOnSuccessListener { downloadUrl ->
-                    saveToRealtimeDatabase(status, category, downloadUrl.toString())
+        // Set color based on selected category
+        statusSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                selectedCategoryColor = when (position) {
+                    0 -> ContextCompat.getColor(this@StatusActivity, R.color.colorRendah) // Low danger
+                    1 -> ContextCompat.getColor(this@StatusActivity, R.color.colorSedang) // Medium danger
+                    2 -> ContextCompat.getColor(this@StatusActivity, R.color.colorTinggi) // High danger
+                    else -> R.color.colorRendah // Default color
                 }
-            }.addOnFailureListener {
-                btnPost.isEnabled = true
-                btnPost.text = "POST"
-                Toast.makeText(this, "Gagal upload gambar: ${it.message}", Toast.LENGTH_SHORT).show()
             }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+                // Default selection if nothing is selected
+            }
+        }
+
+        // Button to select image from gallery
+        btnSelectImage.setOnClickListener {
+            pickImageLauncher.launch("image/*")
+        }
+
+        // Post status button
+        btnPost.setOnClickListener {
+            postStatus()
         }
     }
 
-    private fun saveToRealtimeDatabase(status: String, category: String, imageUrl: String) {
-        val database = FirebaseDatabase.getInstance().getReference("posts")
+    private fun postStatus() {
+        val statusText = edtStatus.text.toString()
+        val statusCategory = statusSpinner.selectedItem.toString()
 
-        // AMBIL USER ID dari SharedPreferences (Sangat Penting untuk Profile)
-        val sharedPrefs = getSharedPreferences("USER_PREFS", Context.MODE_PRIVATE)
-        val currentUserId = sharedPrefs.getString("CURRENT_USER_ID", "") ?: "anonymous"
+        if (statusText.isEmpty()) {
+            Toast.makeText(this, "Status tidak boleh kosong", Toast.LENGTH_SHORT).show()
+            return
+        }
 
-        val postId = database.push().key
-
-        // Data Postingan Lengkap
         val postData = PostData(
-            status = status,
-            category = category,
-            imageUrl = imageUrl,
-            userId = currentUserId, // Menghubungkan postingan dengan akun user
-            latitude = -7.797068,   // Koordinat contoh (Yogyakarta)
-            longitude = 110.370529  // Di masa depan bisa diambil dari GPS MapsActivity
+            title = statusCategory,
+            message = statusText,
+            categoryColor = selectedCategoryColor,  // Save the selected color for category
+            postImageUri = tempImageUri,  // Include the selected image URI
+            timestamp = System.currentTimeMillis(),
+            userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
         )
 
-        if (postId != null) {
-            database.child(postId).setValue(postData).addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    Toast.makeText(this, "Berhasil diposting!", Toast.LENGTH_SHORT).show()
-                    // Kembali ke MapsActivity dan tutup halaman ini
-                    finish()
-                } else {
-                    btnPost.isEnabled = true
-                    btnPost.text = "POST"
-                    Toast.makeText(this, "Gagal simpan data", Toast.LENGTH_SHORT).show()
-                }
+        // Post status to Firebase Realtime Database
+        val database = FirebaseDatabase.getInstance().reference
+        val postRef = database.child("posts").push() // Generate a new unique post ID
+        postRef.setValue(postData)
+            .addOnCompleteListener {
+                Toast.makeText(this, "Status berhasil diposting", Toast.LENGTH_SHORT).show()
+                finish() // Close the activity after posting
             }
-        }
-    }
-
-    private val resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == RESULT_OK) {
-            imageUri = result.data?.data
-            selectedImage.setImageURI(imageUri)
-            selectedImage.visibility = android.view.View.VISIBLE
-        }
+            .addOnFailureListener {
+                Toast.makeText(this, "Terjadi kesalahan saat posting", Toast.LENGTH_SHORT).show()
+            }
     }
 }
