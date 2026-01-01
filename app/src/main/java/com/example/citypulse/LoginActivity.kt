@@ -11,7 +11,6 @@ import com.google.firebase.database.FirebaseDatabase
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityLoginBinding
-    // Ganti Firestore ke Realtime Database
     private val database = FirebaseDatabase.getInstance().getReference("users")
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -20,12 +19,10 @@ class LoginActivity : AppCompatActivity() {
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Logika Tombol Login (Sign In)
         binding.btnLogin.setOnClickListener {
             performLogin()
         }
 
-        // Navigasi ke RegisterActivity
         binding.tvToRegister.setOnClickListener {
             val intent = Intent(this, RegisterActivity::class.java)
             startActivity(intent)
@@ -50,15 +47,9 @@ class LoginActivity : AppCompatActivity() {
                         val userProfile = userSnapshot.getValue(UserModel::class.java)
 
                         if (userProfile != null && userProfile.password == password) {
-                            // --- PERUBAHAN DI SINI ---
-                            // Ambil KEY/ID dari database (misal: user_gmail_com)
                             val userIdFromDb = userSnapshot.key ?: ""
-
                             Toast.makeText(this, "Selamat datang, ${userProfile.nama}", Toast.LENGTH_SHORT).show()
-
-                            // Kirim userId ke fungsi saveLoginStatus
                             saveLoginStatus(true, userIdFromDb)
-
                             navigateToMain()
                             userFound = true
                             break
@@ -76,15 +67,12 @@ class LoginActivity : AppCompatActivity() {
                 Toast.makeText(this, "Error: ${exception.message}", Toast.LENGTH_SHORT).show()
             }
     }
-
-    // Tambahkan parameter userId
     private fun saveLoginStatus(isLoggedIn: Boolean, userId: String) {
         val sharedPrefs = getSharedPreferences("USER_PREFS", Context.MODE_PRIVATE)
         sharedPrefs.edit().apply {
             putBoolean("IS_LOGGED_IN", isLoggedIn)
             putBoolean("IS_REGISTERED", true)
 
-            // --- PENTING: Simpan ID agar bisa dihapus di SettingActivity ---
             putString("CURRENT_USER_ID", userId)
 
             apply()

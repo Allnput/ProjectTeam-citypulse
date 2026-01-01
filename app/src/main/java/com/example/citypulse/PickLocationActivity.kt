@@ -27,7 +27,6 @@ class PickLocationActivity : AppCompatActivity(), OnMapReadyCallback {
         findViewById<Button>(R.id.btnConfirmLocation).setOnClickListener {
             if (selectedLatLng != null) {
                 val intent = Intent()
-                // Pastikan Key ini sama dengan yang dipanggil di StatusActivity
                 intent.putExtra("LAT", selectedLatLng!!.latitude)
                 intent.putExtra("LNG", selectedLatLng!!.longitude)
                 setResult(RESULT_OK, intent)
@@ -39,16 +38,12 @@ class PickLocationActivity : AppCompatActivity(), OnMapReadyCallback {
     }
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
-
-        // Fokus awal ke lokasi perangkat atau Jogja
         val startLoc = LatLng(-7.797068, 110.370529)
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(startLoc, 15f))
-
-        // Listener Klik: User mengetuk peta untuk menaruh Pin
         mMap.setOnMapClickListener { latLng ->
-            mMap.clear() // Hapus marker sebelumnya
+            mMap.clear()
             mMap.addMarker(MarkerOptions().position(latLng).title("Lokasi Kejadian"))
-            selectedLatLng = latLng // Simpan koordinat yang dipilih
+            selectedLatLng = latLng
         }
     }
 }

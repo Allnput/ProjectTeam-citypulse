@@ -27,65 +27,50 @@ import com.google.android.gms.maps.model.MarkerOptions
 import com.google.firebase.database.*
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
-
     private lateinit var binding: ActivityMapsBinding
     private var mMap: GoogleMap? = null
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private val database = FirebaseDatabase.getInstance().getReference("posts")
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMapsBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-
         setupMap()
         setupBottomNavigation()
         setupNotification()
-
         binding.btnAddIncident.setOnClickListener {
             startActivity(Intent(this, StatusActivity::class.java))
         }
-
         binding.searchCard.setOnClickListener {
             startActivity(Intent(this, StatusActivity::class.java))
         }
     }
-
     private fun setupMap() {
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map_fragment) as? SupportMapFragment
         mapFragment?.getMapAsync(this)
     }
-
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
         handleIntentLocation(intent)
     }
-
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
         mMap?.setPadding(0, 210, 0, 180)
-
-        // 1. Pasang Custom Info Window Adapter
         setupCustomInfoWindow()
 
         enableMyLocation()
         fetchMarkersFromFirebase()
         handleIntentLocation(intent)
     }
-
     private fun setupCustomInfoWindow() {
         mMap?.setInfoWindowAdapter(object : GoogleMap.InfoWindowAdapter {
             override fun getInfoWindow(marker: Marker): View? {
-                // Return null agar sistem menggunakan getInfoContents
                 return null
             }
-
             override fun getInfoContents(marker: Marker): View {
-                // Menggunakan layout custom_info_window.xml
                 val infoView = layoutInflater.inflate(R.layout.custom_info_window, null)
                 val post = marker.tag as? PostData
 
@@ -95,8 +80,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
                 tvTitle.text = marker.title
                 tvSnippet.text = marker.snippet
-
-                // Decode Base64 ke Gambar untuk ditampilkan di Info Window
                 if (post != null && !post.imageUrl.isNullOrEmpty()) {
                     try {
                         val imageBytes = Base64.decode(post.imageUrl, Base64.DEFAULT)
@@ -113,13 +96,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 return infoView
             }
         })
-
-        // Listener klik pada info window (Opsional)
         mMap?.setOnInfoWindowClickListener { marker ->
             Toast.makeText(this, "Melihat detail ${marker.title}", Toast.LENGTH_SHORT).show()
         }
     }
-
     private fun fetchMarkersFromFirebase() {
         database.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
@@ -128,8 +108,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     val post = postSnapshot.getValue(PostData::class.java)
                     if (post != null && post.latitude != 0.0) {
                         val location = LatLng(post.latitude, post.longitude)
-
-                        // 2. Logika Warna Marker berdasarkan Kategori
                         val markerColor = when (post.kategori) {
                             "Rendah" -> BitmapDescriptorFactory.HUE_GREEN
                             "Sedang" -> BitmapDescriptorFactory.HUE_YELLOW
@@ -144,7 +122,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                                 .snippet("${post.pembuat}: ${post.deskripsi}")
                                 .icon(BitmapDescriptorFactory.defaultMarker(markerColor))
                         )
-                        // Menyimpan objek post ke tag marker agar bisa dibaca Info Window
                         marker?.tag = post
                     }
                 }
@@ -152,7 +129,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             override fun onCancelled(error: DatabaseError) {}
         })
     }
-
     private fun handleIntentLocation(intent: Intent) {
         val targetLat = intent.getDoubleExtra("EXTRA_LAT", 0.0)
         val targetLng = intent.getDoubleExtra("EXTRA_LNG", 0.0)
@@ -164,12 +140,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             getDeviceLocation()
         }
     }
-
     private fun getDeviceLocation() {
         try {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
-
                 fusedLocationClient.lastLocation.addOnCompleteListener(this) { task ->
                     if (task.isSuccessful && task.result != null) {
                         val loc = task.result
@@ -183,7 +157,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             }
         } catch (e: SecurityException) { e.printStackTrace() }
     }
-
     private fun enableMyLocation() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
             == PackageManager.PERMISSION_GRANTED) {
@@ -192,13 +165,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 100)
         }
     }
-
     private fun setupBottomNavigation() {
         binding.navHome.setOnClickListener { /* Sudah di Home */ }
         binding.navProfile.setOnClickListener { startActivity(Intent(this, ProfileActivity::class.java)) }
         binding.navSetting.setOnClickListener { startActivity(Intent(this, SettingActivity::class.java)) }
     }
-
     private fun setupNotification() {
         binding.btnNotification.setOnClickListener { startActivity(Intent(this, NotifActivity::class.java)) }
     }
